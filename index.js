@@ -50,8 +50,8 @@ let bathroom = new Room(
   true
 );
 
-let livingRoom = new Room(
-  "livingRoom",
+let sunroom = new Room(
+  "sunroom",
   "You are in the living room. \nThere is a book on the table. ",
   ["book"],
   false
@@ -101,7 +101,7 @@ let sticker = new Item(
 let book = new Item(
   "book",
   "Inside of the book, someone has written the number '6'. ",
-  "livingRoom",
+  "sunroom",
   false
 );
 let microwave = new Item(
@@ -128,7 +128,7 @@ let keypad = new Item(
 let roomLookup = {
   bedroom,
   bathroom,
-  "living room": livingRoom,
+  sunroom,
   kitchen,
   porch,
   outside,
@@ -161,9 +161,9 @@ let currentLocation = "bedroom";
 //Allowed transitions
 let roomStateMachine = {
   bedroom: ["bathroom"],
-  bathroom: ["bedroom", "livingRoom"],
-  livingRoom: ["bathroom", "kitchen"],
-  kitchen: ["livingRoom", "porch"],
+  bathroom: ["bedroom", "sunroom"],
+  sunroom: ["bathroom", "kitchen"],
+  kitchen: ["sunroom", "porch"],
   porch: ["kitchen", "outside"],
   outside: ["porch"],
 };
@@ -179,19 +179,20 @@ function sanitize(userInput) {
 /* ----------------- Function to Change Rooms ----------------- */
 
 function changeRoom(newLocation) {
-  newLocation = roomLookup[newLocation];
+  console.log(currentLocation)
+  console.log(newLocation)
   //Look at the roomStateMachine for current location
   let allowedTransitions = roomStateMachine[currentLocation];
+  //If the new location's door is locked
+   if (newLocation.locked === true) {
+    console.log("You need to unlock the door first. ");
+  }
   //If current location is connected to the new location
-  if (allowedTransitions.includes(newLocation) && newLocation.locked === false) {
+  else if (allowedTransitions.includes(newLocation)) {
     //Then current location becomes the new location
     currentLocation = newLocation;
     //And computer prints the new room's description
     console.log(roomLookup[currentLocation].description);
-  }
-  //If the new location's door is locked
-  else if (newLocation.locked === true) {
-    console.log("You need to unlock the door first. ");
   }
   //If currentLocation and newLocation are not connected
   else {
@@ -277,16 +278,12 @@ async function playGame() {
     } else if (
       answer.includes("bedroom") ||
       answer.includes("bathroom") ||
+      answer.includes("sunroom") ||
       answer.includes("kitchen") ||
       answer.includes("porch") ||
       answer.includes("outside")
     ) {
-      console.log(lastWordInAnswer);
       changeRoom(lastWordInAnswer);
-    } else if (answer.includes("bedroom")) {
-    } else if (answer.includes("bathroom")) {
-    } else if (answer.includes("living room")) {
-      changeRoom("livingRoom");
     } else if (answer.includes("3674")) {
       outside.locked === false;
       console.log(outside.description);
