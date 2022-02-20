@@ -15,7 +15,7 @@ function ask(questionText) {
 /* ----------------- Room Class Constructor ------------------ */
 
 class Room {
-  constructor(name, description, inventory, locked) {
+  constructor(name, description, inventory, locked = true) {
     this.name = name;
     this.description = description;
     this.inventory = inventory;
@@ -75,7 +75,7 @@ let outside = new Room(
   "outside",
   "\nYou escaped!!! Great job 🥳 💃🏻 \n\nYou may now move between rooms freely or end the game. ",
   [],
-  true
+  locked = true
 );
 
 /* -------------------- Item Descriptions --------------------- */
@@ -181,8 +181,13 @@ function sanitize(userInput) {
 function changeRoom(newLocation) {
   //Look at the roomStateMachine for current location
   let allowedTransitions = roomStateMachine[currentLocation];
+  console.log(allowedTransitions)
   //If the new location's door is locked
-  if (newLocation.locked === true) {
+  if (player.inventory.includes("key")) {
+    bathroom.locked = false;
+    currentLocation = newLocation;
+    console.log(roomLookup[currentLocation].description);
+  } else if (newLocation.locked = true) {
     console.log("You need to unlock the door first. ");
   }
   //If current location is connected to the new location
@@ -202,7 +207,6 @@ function changeRoom(newLocation) {
         ". "
     );
   }
-
   //The player's location is the same as current location
   player.location = roomLookup[currentLocation];
 }
@@ -245,10 +249,10 @@ function dropItem(inventoryItem) {
 
 function keypadPuzzle(numbers) {
   if (numbers === "3674") {
-    outside.locked === false;
+    outside.locked = false;
     console.log(outside.description);
   } else {
-    outside.locked === true;
+    outside.locked = true;
     console.log("The password is incorrect. Please type 'a' to try again. ");
   }
 }
@@ -296,11 +300,9 @@ async function playGame() {
     } else if(answer.includes("drop") || answer.includes("put down")) {
       dropItem(lastWordInAnswer);
     } 
-    else if (
-      player.inventory.includes("key") &&
-      (answer.includes("open") ||
+    else if (answer.includes("open") ||
         answer.includes("unlock") ||
-        answer.includes("bathroom"))
+        answer.includes("bathroom")
     ) {
       changeRoom("bathroom");
     } else if (
