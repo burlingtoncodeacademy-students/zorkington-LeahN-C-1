@@ -47,7 +47,7 @@ let bathroom = new Room(
   "bathroom",
   "\nYou walk into the bathroom. \nOn the mirror is a sticker. ",
   ["sticker"],
-  (this.locked = true)
+  true
 );
 
 let sunroom = new Room(
@@ -73,9 +73,9 @@ let porch = new Room(
 
 let outside = new Room(
   "outside",
-  "\nYou escaped!!! Great job 🥳 💃🏻 \n\nYou may now move between rooms freely or end the game. ",
+  "\nYou escaped!!! Great job 🥳 💃🏻 \n\nYou may now move between rooms freely or end the game. \nIf you go back inside, you will need to use the keypad to get out again, so remember the code! ",
   [],
-  (this.locked = true)
+  true
 );
 
 /* -------------------- Item Descriptions --------------------- */
@@ -188,11 +188,6 @@ function changeRoom(newLocation) {
     //Print the description of the new room
     console.log(roomLookup[currentLocation].description);
   }
-  //If the requested location is locked
-  else if (newLocation.locked === true) {
-    //Print this message
-    console.log("\nYou need to unlock the door first");
-  }
   //If currentLocation and newLocation are not connected
   else {
     //Print this
@@ -293,16 +288,10 @@ async function start() {
 async function playGame() {
   //While shit and stuff is truthy (meaning the user has not typed "quit")
   while (true) {
-    console.log(
-      "\n- current location: " +
-        currentLocation +
-        " -\n- " +
-        " connects to: " +
-        roomStateMachine[currentLocation] +
-        " -"
-    );
+    console.log("\n- current location: " + currentLocation + " -\n- " + " connects to: " + roomStateMachine[currentLocation] + " -");
+    
     //Ask this question after every response
-    let answer = await ask("\nWhat would you like to do? \n>_");
+    answer = await ask("\nWhat would you like to do? \n>_");
     //Use sanitize function (above) to clean user's answer
     answer = sanitize(answer);
     //Split answer by spaces into an array of words
@@ -347,10 +336,8 @@ async function playGame() {
     //If the input includes "drop" or "put down", run item through dropItem() function
     else if (answer.includes("drop") || answer.includes("put down")) {
       dropItem(lastWordInAnswer);
-    }
-    //If current location is outside, outside should stay open
-    else if (currentLocation === "outside") {
-      outside.locked === false;
+    } else if (outside.locked === false && answer.includes("outside") && currentLocation === "porch") {
+      changeRoom("outside");
     }
     //If input includes "outside" and "porch", the outside stays locked and user is prompted to use keypad
     else if (answer.includes("outside") && currentLocation === "porch") {
@@ -393,7 +380,7 @@ async function playGame() {
     }
     //If input includes "examine" or "look at" and "keypad", or if input is "a" and current location is "porch", await ask keypad's description and run answer through keypadPuzzle() function
     else if (
-      (((answer.includes("examine") || answer.includes("look at")) &&
+      (((answer.includes("examine") || answer.includes("look at") || answer.includes("use")) &&
         answer.includes("keypad")) ||
         answer === "a") &&
       currentLocation === "porch"
