@@ -47,7 +47,7 @@ let bathroom = new Room(
   "bathroom",
   "\nYou walk into the bathroom. \nOn the mirror is a sticker. ",
   ["sticker"],
-  true
+  (this.locked = true)
 );
 
 let sunroom = new Room(
@@ -75,7 +75,7 @@ let outside = new Room(
   "outside",
   "\nYou escaped!!! Great job 🥳 💃🏻 \n\nYou may now move between rooms freely or end the game. ",
   [],
-  true
+  (this.locked = true)
 );
 
 /* -------------------- Item Descriptions --------------------- */
@@ -249,7 +249,9 @@ function dropItem(inventoryItem) {
     );
     droppedItem.push(inventoryItem);
     //And inform user that it has dropped
-    console.log("\nYou dropped the " + inventoryItem + " from your inventory. ");
+    console.log(
+      "\nYou dropped the " + inventoryItem + " from your inventory. "
+    );
   } //If the item doesn't belong in the current room, tell player to drop in the right room
   else {
     console.log("\nPlease put that back where you found it. ");
@@ -264,8 +266,7 @@ function keypadPuzzle(numbers) {
     //The door becomes unlocked
     outside.locked === false;
     //And player is outside
-    changeRoom(outside);
-    console.log(outside.description);
+    changeRoom("outside");
   }
   //Otherwise, the door remains locked and user needs to try code again
   else {
@@ -292,9 +293,16 @@ async function start() {
 async function playGame() {
   //While shit and stuff is truthy (meaning the user has not typed "quit")
   while (true) {
-    console.log("\n-- current location: " + currentLocation + " --");
+    console.log(
+      "\n- current location: " +
+        currentLocation +
+        " -\n- " +
+        " connects to: " +
+        roomStateMachine[currentLocation] +
+        " -"
+    );
     //Ask this question after every response
-    let answer = await ask("What would you like to do? \n>_");
+    let answer = await ask("\nWhat would you like to do? \n>_");
     //Use sanitize function (above) to clean user's answer
     answer = sanitize(answer);
     //Split answer by spaces into an array of words
@@ -304,19 +312,28 @@ async function playGame() {
       splitAnswerIntoArray[splitAnswerIntoArray.length - 1];
     //If the user's input includes "read" or "examine" and "map" and current location is bedroom, read the map's description
     if (
-      (answer.includes("read") || answer.includes("look at") || answer.includes("examine")) &&
+      (answer.includes("read") ||
+        answer.includes("look at") ||
+        answer.includes("examine")) &&
       answer.includes("map") &&
       currentLocation === "bedroom"
     ) {
       //Print map's description
       console.log(map.description);
-    } 
+    } else if (
+      (answer.includes("open") ||
+        answer.includes("unlock") ||
+        answer.includes("bathroom")) &&
+      player.inventory.includes("key") === false
+    ) {
+      console.log("\nYou need a key to unlock the door. ");
+    }
     //If input includes "open" or "unlock" and current location is bedroom, run "bathroom" through changeRoom() function
     else if (
       (answer.includes("open") || answer.includes("unlock")) &&
       currentLocation === "bedroom"
     ) {
-      console.log(currentLocation)
+      console.log(currentLocation);
       changeRoom("bathroom");
     }
     //If the user's input includes "take" or "pick up", run the item through takeItem() function
@@ -330,6 +347,15 @@ async function playGame() {
     //If the input includes "drop" or "put down", run item through dropItem() function
     else if (answer.includes("drop") || answer.includes("put down")) {
       dropItem(lastWordInAnswer);
+    }
+    //If current location is outside, outside should stay open
+    else if (currentLocation === "outside") {
+      outside.locked === false;
+    }
+    //If input includes "outside" and "porch", the outside stays locked and user is prompted to use keypad
+    else if (answer.includes("outside") && currentLocation === "porch") {
+      outside.locked === true;
+      console.log("\nUse the keypad to unlock the door. ");
     }
     //If input includes any of these words
     else if (
