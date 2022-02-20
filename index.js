@@ -73,7 +73,7 @@ let porch = new Room(
 
 let outside = new Room(
   "outside",
-  "You escaped! Great job :) \nYou may now move between rooms freely or end the game. ",
+  "\nYou escaped!!! Great job 🥳 💃🏻 \n\nYou may now move between rooms freely or end the game. ",
   [],
   true
 );
@@ -94,7 +94,7 @@ let key = new Item(
 );
 let sticker = new Item(
   "sticky map",
-  "You pick up the sticky map. All that is written on it is the number '3'. ",
+  "You pick up the sticker. All that is written on it is the number '3'. ",
   "bathroom",
   false
 );
@@ -118,7 +118,7 @@ let chair = new Item(
 );
 let keypad = new Item(
   "keypad",
-  "The keypad has a bunch of numbers. ",
+  "Which numbers would you like to enter? ",
   "porch",
   false
 );
@@ -179,12 +179,10 @@ function sanitize(userInput) {
 /* ----------------- Function to Change Rooms ----------------- */
 
 function changeRoom(newLocation) {
-  console.log(currentLocation)
-  console.log(newLocation)
   //Look at the roomStateMachine for current location
   let allowedTransitions = roomStateMachine[currentLocation];
   //If the new location's door is locked
-   if (newLocation.locked === true) {
+  if (newLocation.locked === true) {
     console.log("You need to unlock the door first. ");
   }
   //If current location is connected to the new location
@@ -228,6 +226,33 @@ function takeItem(suggestedItem) {
   }
 }
 
+/* ------------------ Function to Drop Items ------------------ */
+
+function dropItem(inventoryItem) {
+  //If the player has an item in inventory
+  if (player.inventory.includes(inventoryItem) && roomLookup[currentLocation].inventory.includes(inventoryItem)) {
+    //Drop the item into the current room
+    let droppedItem = player.inventory.splice(player.inventory.indexOf(inventoryItem));
+    droppedItem.push(inventoryItem);
+    console.log("You dropped the " + inventoryItem + " from your inventory. ");
+  } //If the item doesn't belong in the current room, tell player to drop in the right room
+  else {
+    console.log("Please put that back where you found it. ");
+  }
+}
+
+/* -------------------------- Keypad Puzzle ----------------------- */
+
+function keypadPuzzle(numbers) {
+  if (numbers === "3674") {
+    outside.locked === false;
+    console.log(outside.description);
+  } else {
+    outside.locked === true;
+    console.log("The password is incorrect. Please type 'a' to try again. ");
+  }
+}
+
 /* ---------------- Function to Start the Game ---------------- */
 
 start();
@@ -264,16 +289,19 @@ async function playGame() {
       console.log(map.description);
     }
     //If the user's input includes "take", run the item through takeItem() function
-    else if (answer.includes("take")) {
+    else if (answer.includes("take") || answer.includes("pick up")) {
       takeItem(lastWordInAnswer);
     } else if (answer.includes("inventory") || answer === "i") {
       console.log("Your inventory includes: " + "[ " + player.inventory + " ]");
-    } else if (
+    } else if(answer.includes("drop") || answer.includes("put down")) {
+      dropItem(lastWordInAnswer);
+    } 
+    else if (
       player.inventory.includes("key") &&
-      (answer.includes("open") || answer.includes("unlock") || answer.includes("bathroom"))
+      (answer.includes("open") ||
+        answer.includes("unlock") ||
+        answer.includes("bathroom"))
     ) {
-      bedroom.locked === false;
-      bathroom.locked === false;
       changeRoom("bathroom");
     } else if (
       answer.includes("bedroom") ||
@@ -284,9 +312,32 @@ async function playGame() {
       answer.includes("outside")
     ) {
       changeRoom(lastWordInAnswer);
-    } else if (answer.includes("3674")) {
-      outside.locked === false;
-      console.log(outside.description);
+    } else if (
+      (answer.includes("examine") || answer.includes("look at")) &&
+      answer.includes("sticker")
+    ) {
+      console.log(sticker.description);
+    } else if (
+      (answer.includes("examine") || answer.includes("look at")) &&
+      answer.includes("book")
+    ) {
+      console.log(book.description);
+    } else if (
+      (answer.includes("examine") || answer.includes("look at")) &&
+      answer.includes("microwave")
+    ) {
+      console.log(microwave.description);
+    } else if (
+      (answer.includes("examine") || answer.includes("look at")) &&
+      answer.includes("chair")
+    ) {
+      console.log(chair.description);
+    } else if (
+      (answer.includes("examine") || answer.includes("look at")) &&
+      answer.includes("keypad") || answer === "a"
+    ) {
+      answer = await ask(keypad.description);
+      keypadPuzzle(answer);
     } else if (answer === "quit" || answer === "q") {
       console.log("Goodbye");
       process.exit();
