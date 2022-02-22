@@ -212,9 +212,7 @@ function takeItem(suggestedItem) {
     itemLookup[suggestedItem].takeable === false;
     //Tell user that they have already picked up that item
     console.log(
-      "You already picked up " +
-        suggestedItem +
-        " and it is in your inventory."
+      "You already picked up " + suggestedItem + " and it is in your inventory."
     );
   }
   //If the current location has the requested item and the item is takeable
@@ -308,7 +306,6 @@ async function playGame() {
         roomStateMachine[currentLocation] +
         " -"
     );
-
     //Ask this question after every response
     answer = await ask("\nWhat would you like to do? \n>_");
     //Use sanitize function (above) to clean user's answer
@@ -318,19 +315,8 @@ async function playGame() {
     //Find the last word in the user's sentence
     let lastWordInAnswer =
       splitAnswerIntoArray[splitAnswerIntoArray.length - 1];
-    //If the user's input includes "read" or "examine" and "map" and current location is bedroom, read the map's description
-    if (
-      (answer.includes("read") ||
-        answer.includes("look at") ||
-        answer.includes("examine")) &&
-      answer.includes("map") &&
-      currentLocation === "bedroom"
-    ) {
-      //Print map's description
-      console.log(map.description);
-    }
     //If the input includes "open" or "unlock" or "bathroom" and player does not have a key in inventory
-    else if (
+    if (
       (answer.includes("open") ||
         answer.includes("unlock") ||
         answer.includes("bathroom")) &&
@@ -344,7 +330,6 @@ async function playGame() {
       (answer.includes("open") || answer.includes("unlock")) &&
       currentLocation === "bedroom"
     ) {
-      console.log(currentLocation);
       changeRoom("bathroom");
     }
     //If the user's input includes "take" or "pick up", run the item through takeItem() function
@@ -372,37 +357,14 @@ async function playGame() {
     }
     //If input includes any of these words
     else if (
-      answer.includes("bedroom") ||
-      answer.includes("bathroom") ||
-      answer.includes("sunroom") ||
-      answer.includes("kitchen") ||
-      answer.includes("porch") ||
-      answer.includes("outside")
+      answer.includes(roomLookup[lastWordInAnswer].name)
     ) {
       //Run the word through changeRoom() function
       changeRoom(lastWordInAnswer);
     }
-    //If input includes "examine" or "look at" and any of the item words below, print the item's description
     else if (
-      (answer.includes("examine") || answer.includes("look at")) &&
-      answer.includes("sticker")
-    ) {
-      console.log(sticker.description);
-    } else if (
-      (answer.includes("examine") || answer.includes("look at")) &&
-      answer.includes("book")
-    ) {
-      console.log(book.description);
-    } else if (
-      (answer.includes("examine") || answer.includes("look at")) &&
-      answer.includes("microwave")
-    ) {
-      console.log(microwave.description);
-    } else if (
-      (answer.includes("examine") || answer.includes("look at")) &&
-      answer.includes("chair")
-    ) {
-      console.log(chair.description);
+      (answer.includes("examine") || answer.includes("look at") || answer.includes("read")) && roomLookup[currentLocation].inventory.includes(lastWordInAnswer)) {
+      console.log(itemLookup[lastWordInAnswer].description);
     }
     //If input includes "examine" or "look at" and "keypad", or if input is "a" and current location is "porch", await ask keypad's description and run answer through keypadPuzzle() function
     else if (
