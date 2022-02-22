@@ -206,8 +206,19 @@ function changeRoom(newLocation) {
 /* ------------------ Function to Take Items ------------------ */
 
 function takeItem(suggestedItem) {
+  //If the player already has the item in inventory
+  if (player.inventory.includes(suggestedItem)) {
+    //Then the item is no longer takeable
+    itemLookup[suggestedItem].takeable === false;
+    //Tell user that they have already picked up that item
+    console.log(
+      "You already picked up " +
+        suggestedItem +
+        " and it is in your inventory."
+    );
+  }
   //If the current location has the requested item and the item is takeable
-  if (
+  else if (
     roomLookup[currentLocation].inventory.includes(suggestedItem) &&
     itemLookup[suggestedItem].takeable === true
   ) {
@@ -223,6 +234,7 @@ function takeItem(suggestedItem) {
     //Print this
     console.log("\nYou cannot take that! ");
   }
+
   //Otherwise, if the item is not in the room
   else {
     //Inform user can't see the item
@@ -288,8 +300,15 @@ async function start() {
 async function playGame() {
   //While shit and stuff is truthy (meaning the user has not typed "quit")
   while (true) {
-    console.log("\n- current location: " + currentLocation + " -\n- " + " connects to: " + roomStateMachine[currentLocation] + " -");
-    
+    console.log(
+      "\n- current location: " +
+        currentLocation +
+        " -\n- " +
+        " connects to: " +
+        roomStateMachine[currentLocation] +
+        " -"
+    );
+
     //Ask this question after every response
     answer = await ask("\nWhat would you like to do? \n>_");
     //Use sanitize function (above) to clean user's answer
@@ -309,12 +328,15 @@ async function playGame() {
     ) {
       //Print map's description
       console.log(map.description);
-    } else if (
+    }
+    //If the input includes "open" or "unlock" or "bathroom" and player does not have a key in inventory
+    else if (
       (answer.includes("open") ||
         answer.includes("unlock") ||
         answer.includes("bathroom")) &&
       player.inventory.includes("key") === false
     ) {
+      //Tell user to unlock the door first
       console.log("\nYou need a key to unlock the door. ");
     }
     //If input includes "open" or "unlock" and current location is bedroom, run "bathroom" through changeRoom() function
@@ -336,7 +358,11 @@ async function playGame() {
     //If the input includes "drop" or "put down", run item through dropItem() function
     else if (answer.includes("drop") || answer.includes("put down")) {
       dropItem(lastWordInAnswer);
-    } else if (outside.locked === false && answer.includes("outside") && currentLocation === "porch") {
+    } else if (
+      outside.locked === false &&
+      answer.includes("outside") &&
+      currentLocation === "porch"
+    ) {
       changeRoom("outside");
     }
     //If input includes "outside" and "porch", the outside stays locked and user is prompted to use keypad
@@ -380,7 +406,9 @@ async function playGame() {
     }
     //If input includes "examine" or "look at" and "keypad", or if input is "a" and current location is "porch", await ask keypad's description and run answer through keypadPuzzle() function
     else if (
-      (((answer.includes("examine") || answer.includes("look at") || answer.includes("use")) &&
+      (((answer.includes("examine") ||
+        answer.includes("look at") ||
+        answer.includes("use")) &&
         answer.includes("keypad")) ||
         answer === "a") &&
       currentLocation === "porch"
